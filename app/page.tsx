@@ -133,6 +133,19 @@ const STATS = [
   { label: "DOMAINS", value: "3 connected" },
 ];
 
+const QUALITY_ISSUES = [
+  { id: "W-001", field: "carrier_id", issue: "12 null values detected in batch 847B", severity: "warning" as const, detected: "34 min ago", owner: "Sarah Kim" },
+  { id: "W-002", field: "shipment_date", issue: "3 records outside expected range (2025-2030)", severity: "warning" as const, detected: "34 min ago", owner: "Rajesh Patel" },
+  { id: "W-003", field: "carrier_id", issue: "Schema drift: field type changed string → int in source", severity: "warning" as const, detected: "2h ago", owner: "Sarah Kim" },
+  { id: "W-004", field: "warehouse_code", issue: "1 unrecognized code: WH-099 not in master list", severity: "info" as const, detected: "6h ago", owner: "Maria Chen" },
+];
+
+const AI_MODELS = [
+  { name: "Delivery Time Predictor", type: "REGRESSION", compatibility: 98, lastTrained: "2h ago", status: "active" as const },
+  { name: "Route Optimizer", type: "OPTIMIZATION", compatibility: 94, lastTrained: "18h ago", status: "active" as const },
+  { name: "Demand Forecaster", type: "TIME-SERIES", compatibility: 87, lastTrained: "3 days ago", status: "retraining" as const },
+];
+
 const SOURCE_DETAILS: Record<
   SourceNodeId,
   {
@@ -229,10 +242,11 @@ function sparklinePoints(
 export default function Home() {
   const [hoveredNode, setHoveredNode] = useState<NodeId | null>(null);
   const [hoveredEdge, setHoveredEdge] = useState<string | null>(null);
-  const [ctaFlash, setCtaFlash] = useState(false);
+  const [modelModalOpen, setModelModalOpen] = useState(false);
   const [selectedSource, setSelectedSource] = useState<SourceNodeId | null>(
     null,
   );
+  const [qualityExpanded, setQualityExpanded] = useState(false);
   const detailPanelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -251,10 +265,14 @@ export default function Home() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [selectedSource]);
 
-  const handleCtaClick = useCallback(() => {
-    setCtaFlash(true);
-    setTimeout(() => setCtaFlash(false), 300);
-  }, []);
+  useEffect(() => {
+    if (!modelModalOpen) return;
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === "Escape") setModelModalOpen(false);
+    }
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [modelModalOpen]);
 
   const isEdgeActive = useCallback(
     (edge: LineageEdge) =>
@@ -340,6 +358,7 @@ export default function Home() {
         <div className="flex-1 overflow-auto">
           {FEATURES.map((feature) => {
             const highlighted = sourceForFeature(feature.nodeId);
+            const isQuality = feature.num === "01";
             return (
               <div
                 key={feature.num}
@@ -351,9 +370,11 @@ export default function Home() {
                   backgroundColor: highlighted
                     ? "rgba(255, 255, 255, 0.02)"
                     : "transparent",
+                  cursor: isQuality ? "pointer" : undefined,
                 }}
                 onMouseEnter={() => setHoveredNode(feature.nodeId)}
                 onMouseLeave={() => setHoveredNode(null)}
+                onClick={isQuality ? () => setQualityExpanded((p) => !p) : undefined}
               >
                 <div className="flex items-start gap-5 px-8 py-5">
                   <span className="mt-[2px] font-mono text-[11px] text-secondary">
@@ -389,6 +410,82 @@ export default function Home() {
                         />
                       </div>
                     )}
+                    {/* Quality Issues Expanded Panel */}
+                    {isQuality && (
+                      <AnimatePresence>
+                        {qualityExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.25, ease: "easeOut" }}
+                            style={{ overflow: "hidden" }}
+                          >
+                            <div
+                              className="mt-4 pt-4"
+                              style={{ borderTop: "1px solid #d4a017" }}
+                            >
+                              <div
+                                className="font-mono text-[10px] tracking-[0.2em]"
+                                style={{ color: "#d4a017" }}
+                              >
+                                {QUALITY_ISSUES.length} ISSUES DETECTED
+                              </div>
+                              <div className="mt-3">
+                                {QUALITY_ISSUES.map((issue, i) => (
+                                  <motion.div
+                                    key={issue.id}
+                                    initial={{ opacity: 0, y: -4 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: i * 0.05 }}
+                                    className="py-3"
+                                    style={{
+                                      borderBottom:
+                                        i < QUALITY_ISSUES.length - 1
+                                          ? "1px solid rgba(255, 255, 255, 0.08)"
+                                          : undefined,
+                                    }}
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <span
+                                        className="font-mono text-[10px]"
+                                        style={{ color: "#444" }}
+                                      >
+                                        {issue.id}
+                                      </span>
+                                      <span className="font-mono text-[10px] text-foreground">
+                                        {issue.field}
+                                      </span>
+                                      <span className="flex-1 font-mono text-[10px] text-secondary">
+                                        {issue.issue}
+                                      </span>
+                                      <span
+                                        className="font-mono text-[8px] tracking-[0.15em] px-2 py-[1px]"
+                                        style={{
+                                          border:
+                                            issue.severity === "warning"
+                                              ? "1px solid #d4a017"
+                                              : "1px solid rgba(255, 255, 255, 0.1)",
+                                          color:
+                                            issue.severity === "warning"
+                                              ? "#d4a017"
+                                              : "#666",
+                                        }}
+                                      >
+                                        {issue.severity === "warning" ? "WARNING" : "INFO"}
+                                      </span>
+                                    </div>
+                                    <div className="mt-1 font-mono text-[9px] text-secondary">
+                                      Detected {issue.detected} &middot; {issue.owner}
+                                    </div>
+                                  </motion.div>
+                                ))}
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    )}
                   </div>
                 </div>
               </div>
@@ -398,15 +495,10 @@ export default function Home() {
 
         {/* CTA Bar */}
         <button
-          onClick={handleCtaClick}
-          className="flex w-full items-center justify-between border-t border-border px-8 py-5 font-mono text-[12px] tracking-[0.15em] text-foreground transition-all duration-150 hover:border-t-accent-orange"
-          style={
-            ctaFlash
-              ? { backgroundColor: "rgba(196, 90, 45, 0.15)" }
-              : undefined
-          }
+          onClick={() => setModelModalOpen(true)}
+          className="flex w-full items-center justify-between border-t border-border px-8 py-5 font-mono text-[12px] tracking-[0.15em] text-foreground transition-all duration-150 hover:border-t-accent-orange hover:bg-[rgba(196,90,45,0.08)]"
         >
-          <span>Initialize Environment</span>
+          <span>Connect to AI Model</span>
           <span className="text-accent-orange">{"->"}</span>
         </button>
       </div>
@@ -874,6 +966,106 @@ export default function Home() {
           </AnimatePresence>
         </div>
       </div>
+
+      {/* ================================================================ */}
+      {/* AI MODEL MODAL                                                   */}
+      {/* ================================================================ */}
+      <AnimatePresence>
+        {modelModalOpen && (
+          <motion.div
+            key="model-modal-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.8)" }}
+            onClick={() => setModelModalOpen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-[500px] border border-border-bright"
+              style={{ backgroundColor: "#0a0a0a" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="border-b border-border px-6 py-5">
+                <div className="font-mono text-[11px] tracking-[0.2em] text-foreground">
+                  AVAILABLE MODELS
+                </div>
+                <div className="mt-1 font-mono text-[11px] text-secondary">
+                  Compatible AI models for this data product
+                </div>
+              </div>
+
+              {/* Model Rows */}
+              <div>
+                {AI_MODELS.map((model) => (
+                  <div
+                    key={model.name}
+                    className="border-b border-border px-6 py-4 transition-colors duration-150 hover:bg-[rgba(255,255,255,0.02)]"
+                  >
+                    {/* Name + Type Badge */}
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-[12px] font-bold tracking-wide text-foreground">
+                        {model.name}
+                      </span>
+                      <span
+                        className="font-mono text-[9px] tracking-[0.15em] px-2 py-[2px]"
+                        style={{
+                          border: "1px solid rgba(255, 255, 255, 0.15)",
+                          color: "#666",
+                        }}
+                      >
+                        {model.type}
+                      </span>
+                    </div>
+
+                    {/* Compatibility Bar */}
+                    <div className="mt-3 flex items-center gap-3">
+                      <span className="font-mono text-[9px] tracking-[0.15em] text-secondary">
+                        COMPATIBILITY: {model.compatibility}%
+                      </span>
+                      <div className="h-[2px] flex-1 bg-border-bright">
+                        <div
+                          className="h-full bg-accent-orange transition-all duration-500"
+                          style={{ width: `${model.compatibility}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Last Trained + Status Badge */}
+                    <div className="mt-3 flex items-center justify-between">
+                      <span className="font-mono text-[10px] text-secondary">
+                        Last trained: {model.lastTrained}
+                      </span>
+                      <span
+                        className="font-mono text-[9px] tracking-[0.15em] px-2 py-[2px]"
+                        style={{
+                          border: `1px solid ${model.status === "active" ? "#00ff41" : "#f59e0b"}`,
+                          color: model.status === "active" ? "#00ff41" : "#f59e0b",
+                        }}
+                      >
+                        {model.status === "active" ? "ACTIVE" : "RETRAINING"}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Locked Deploy Bar */}
+              <div className="border-t border-border px-6 py-4">
+                <span className="font-mono text-[11px] tracking-[0.15em] text-secondary">
+                  [LOCKED] DEPLOY REQUIRES APPROVAL
+                </span>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
