@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+:root {
+  --background: #050505;
+  --background-panel: #0a0a0a;
+  --foreground: #e5e5e5;
+  --secondary: #555555;
+  --tertiary: #333333;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-bright: rgba(255, 255, 255, 0.15);
+  --accent-green: #00ff41;
+  --accent-orange: #c45a2d;
+  --accent-red: #ff3344;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-background-panel: var(--background-panel);
+  --color-foreground: var(--foreground);
+  --color-secondary: var(--secondary);
+  --color-tertiary: var(--tertiary);
+  --color-border: var(--border);
+  --color-border-bright: var(--border-bright);
+  --color-accent-green: var(--accent-green);
+  --color-accent-orange: var(--accent-orange);
+  --color-accent-red: var(--accent-red);
+
+  --font-mono: var(--font-jb-mono);
+  --font-display: var(--font-display);
+
+  --animate-pulse-slow: pulse-slow 3s ease-in-out infinite;
+  --animate-flash: flash 0.3s ease-out;
+}
+
+@keyframes pulse-slow {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes flash {
+  0% {
+    background-color: rgba(196, 90, 45, 0.3);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-jb-mono), ui-monospace, monospace;
+}
+
+.bg-grid {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.edge-path {
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 1;
+  fill: none;
+  transition: stroke 0.15s ease, stroke-width 0.15s ease;
+}
+
+.edge-path.active {
+  stroke: var(--accent-orange);
+  stroke-width: 2;
+}
+
+.edge-hit-area {
+  stroke: transparent;
+  stroke-width: 16;
+  fill: none;
+  cursor: pointer;
+}
