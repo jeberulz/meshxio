@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -132,6 +133,47 @@ const STATS = [
   { label: "DOMAINS", value: "3 connected" },
 ];
 
+const SOURCE_DETAILS: Record<
+  SourceNodeId,
+  {
+    owner: string;
+    team: string;
+    lastSync: string;
+    recordCount: string;
+    slaStatus: "on-time" | "breached";
+    uptimePct: number;
+    weeklyVolume: number[];
+  }
+> = {
+  "sap-erp": {
+    owner: "Maria Chen",
+    team: "Logistics EU",
+    lastSync: "2 min ago",
+    recordCount: "4.2M",
+    slaStatus: "on-time",
+    uptimePct: 99.7,
+    weeklyVolume: [42, 38, 45, 41, 47, 44, 46],
+  },
+  "kafka-stream": {
+    owner: "Rajesh Patel",
+    team: "Transport Ops",
+    lastSync: "< 1 min ago",
+    recordCount: "6.1M",
+    slaStatus: "on-time",
+    uptimePct: 99.9,
+    weeklyVolume: [120, 135, 128, 142, 138, 145, 150],
+  },
+  "rest-api": {
+    owner: "Sarah Kim",
+    team: "Partner Network",
+    lastSync: "47 min ago",
+    recordCount: "2.1M",
+    slaStatus: "breached",
+    uptimePct: 94.2,
+    weeklyVolume: [18, 22, 15, 20, 12, 19, 21],
+  },
+};
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -161,6 +203,25 @@ function edgeMidpoint(edge: LineageEdge): { x: number; y: number } {
   return { x: (x1 + x2) / 2, y: (y1 + y2) / 2 };
 }
 
+function sparklinePoints(
+  data: number[],
+  width: number,
+  height: number,
+): string {
+  if (data.length === 0) return "";
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+  const stepX = width / (data.length - 1);
+  return data
+    .map((val, i) => {
+      const x = i * stepX;
+      const y = height - ((val - min) / range) * height;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -169,6 +230,26 @@ export default function Home() {
   const [hoveredNode, setHoveredNode] = useState<NodeId | null>(null);
   const [hoveredEdge, setHoveredEdge] = useState<string | null>(null);
   const [ctaFlash, setCtaFlash] = useState(false);
+  const [selectedSource, setSelectedSource] = useState<SourceNodeId | null>(
+    null,
+  );
+  const detailPanelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!selectedSource) return;
+    function handleClickOutside(e: MouseEvent) {
+      const target = e.target as Element;
+      if (target.closest?.("[data-source-node]")) return;
+      if (
+        detailPanelRef.current &&
+        !detailPanelRef.current.contains(target)
+      ) {
+        setSelectedSource(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [selectedSource]);
 
   const handleCtaClick = useCallback(() => {
     setCtaFlash(true);
@@ -395,16 +476,33 @@ export default function Home() {
             {/* Nodes */}
             {NODES.map((node) => {
               const hovered = hoveredNode === node.id;
-              const borderColor = hovered
-                ? "#c45a2d"
-                : "rgba(255, 255, 255, 0.1)";
+              const isSelected = selectedSource === node.id;
+              const borderColor =
+                isSelected || hovered
+                  ? "#c45a2d"
+                  : "rgba(255, 255, 255, 0.1)";
 
               return (
                 <g
                   key={node.id}
+                  data-source-node={
+                    node.type === "source" ? node.id : undefined
+                  }
                   onMouseEnter={() => setHoveredNode(node.id)}
                   onMouseLeave={() => setHoveredNode(null)}
-                  style={{ cursor: "default" }}
+                  onClick={
+                    node.type === "source"
+                      ? () =>
+                          setSelectedSource((prev) =>
+                            prev === node.id
+                              ? null
+                              : (node.id as SourceNodeId),
+                          )
+                      : undefined
+                  }
+                  style={{
+                    cursor: node.type === "source" ? "pointer" : "default",
+                  }}
                 >
                   {/* Node rect */}
                   <rect
@@ -414,7 +512,7 @@ export default function Home() {
                     height={NODE_H}
                     fill="#0a0a0a"
                     stroke={borderColor}
-                    strokeWidth={0.5}
+                    strokeWidth={isSelected ? 1.5 : 0.5}
                   />
 
                   {/* System name */}
@@ -495,6 +593,285 @@ export default function Home() {
               LATENCY: <span className="text-foreground">3.8min</span>
             </div>
           </div>
+
+          {/* Source Detail Panel */}
+          <AnimatePresence>
+            {selectedSource &&
+              (() => {
+                const detail = SOURCE_DETAILS[selectedSource];
+                const sourceNode = NODES.find(
+                  (n) => n.id === selectedSource,
+                )!;
+                const slaColor =
+                  detail.slaStatus === "on-time" ? "#00ff41" : "#ff3344";
+
+                return (
+                  <motion.div
+                    ref={detailPanelRef}
+                    key={selectedSource}
+                    initial={{ x: 300, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: 300, opacity: 0 }}
+                    transition={{
+                      type: "tween",
+                      duration: 0.25,
+                      ease: "easeOut",
+                    }}
+                    className="absolute inset-y-0 right-0 z-10 flex w-[336px] flex-col overflow-y-auto"
+                    style={{
+                      backgroundColor: "#0a0a0a",
+                      borderLeft: "1px solid #c45a2d",
+                    }}
+                  >
+                    {/* Header */}
+                    <div
+                      className="flex items-center justify-between px-5 py-4"
+                      style={{
+                        borderBottom: "1px solid rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      <span
+                        className="font-mono text-[10px] tracking-[0.2em]"
+                        style={{ color: "#e5e5e5" }}
+                      >
+                        SOURCE DETAIL
+                      </span>
+                      <button
+                        onClick={() => setSelectedSource(null)}
+                        className="font-mono text-[12px] transition-colors"
+                        style={{ color: "#555" }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.color = "#e5e5e5")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.color = "#555")
+                        }
+                      >
+                        X
+                      </button>
+                    </div>
+
+                    {/* System Name */}
+                    <div
+                      className="px-5 py-4"
+                      style={{
+                        borderBottom: "1px solid rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      <div
+                        className="font-mono text-[9px] tracking-[0.2em]"
+                        style={{ color: "#555" }}
+                      >
+                        SYSTEM
+                      </div>
+                      <div
+                        className="mt-1 font-mono text-[14px] font-bold tracking-wide"
+                        style={{ color: "#e5e5e5" }}
+                      >
+                        {sourceNode.systemName}
+                      </div>
+                      <div
+                        className="mt-1 font-mono text-[9px] tracking-[0.15em]"
+                        style={{ color: "#c45a2d" }}
+                      >
+                        {sourceNode.label}
+                      </div>
+                    </div>
+
+                    {/* Owner + Team */}
+                    <div
+                      className="flex"
+                      style={{
+                        borderBottom: "1px solid rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      <div
+                        className="flex-1 px-5 py-3"
+                        style={{
+                          borderRight: "1px solid rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        <div
+                          className="font-mono text-[9px] tracking-[0.2em]"
+                          style={{ color: "#555" }}
+                        >
+                          OWNER
+                        </div>
+                        <div
+                          className="mt-1 font-mono text-[11px]"
+                          style={{ color: "#e5e5e5" }}
+                        >
+                          {detail.owner}
+                        </div>
+                      </div>
+                      <div className="flex-1 px-5 py-3">
+                        <div
+                          className="font-mono text-[9px] tracking-[0.2em]"
+                          style={{ color: "#555" }}
+                        >
+                          TEAM
+                        </div>
+                        <div
+                          className="mt-1 font-mono text-[11px]"
+                          style={{ color: "#e5e5e5" }}
+                        >
+                          {detail.team}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Last Sync + Records */}
+                    <div
+                      className="flex"
+                      style={{
+                        borderBottom: "1px solid rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      <div
+                        className="flex-1 px-5 py-3"
+                        style={{
+                          borderRight: "1px solid rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        <div
+                          className="font-mono text-[9px] tracking-[0.2em]"
+                          style={{ color: "#555" }}
+                        >
+                          LAST SYNC
+                        </div>
+                        <div
+                          className="mt-1 font-mono text-[11px]"
+                          style={{ color: "#e5e5e5" }}
+                        >
+                          {detail.lastSync}
+                        </div>
+                      </div>
+                      <div className="flex-1 px-5 py-3">
+                        <div
+                          className="font-mono text-[9px] tracking-[0.2em]"
+                          style={{ color: "#555" }}
+                        >
+                          RECORDS
+                        </div>
+                        <div
+                          className="mt-1 font-mono text-[11px]"
+                          style={{ color: "#e5e5e5" }}
+                        >
+                          {detail.recordCount}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* SLA + Uptime */}
+                    <div
+                      className="flex"
+                      style={{
+                        borderBottom: "1px solid rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      <div
+                        className="flex-1 px-5 py-3"
+                        style={{
+                          borderRight: "1px solid rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        <div
+                          className="font-mono text-[9px] tracking-[0.2em]"
+                          style={{ color: "#555" }}
+                        >
+                          SLA STATUS
+                        </div>
+                        <div className="mt-2">
+                          <span
+                            className="font-mono text-[9px] tracking-[0.15em]"
+                            style={{
+                              border: `1px solid ${slaColor}`,
+                              color: slaColor,
+                              padding: "2px 8px",
+                            }}
+                          >
+                            {detail.slaStatus === "on-time"
+                              ? "ON-TIME"
+                              : "SLA: BREACHED"}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex-1 px-5 py-3">
+                        <div
+                          className="font-mono text-[9px] tracking-[0.2em]"
+                          style={{ color: "#555" }}
+                        >
+                          UPTIME
+                        </div>
+                        <div
+                          className="mt-1 font-mono text-[14px]"
+                          style={{ color: "#e5e5e5" }}
+                        >
+                          {detail.uptimePct}%
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Sparkline */}
+                    <div className="px-5 py-4">
+                      <div
+                        className="font-mono text-[9px] tracking-[0.2em]"
+                        style={{ color: "#555" }}
+                      >
+                        7-DAY VOLUME
+                      </div>
+                      <div
+                        className="mt-3"
+                        style={{
+                          border: "1px solid rgba(255,255,255,0.08)",
+                          padding: "12px",
+                        }}
+                      >
+                        <svg
+                          viewBox="0 0 200 60"
+                          className="w-full"
+                          style={{ display: "block" }}
+                        >
+                          <polyline
+                            points={sparklinePoints(
+                              detail.weeklyVolume,
+                              200,
+                              60,
+                            )}
+                            fill="none"
+                            stroke="#c45a2d"
+                            strokeWidth={1.5}
+                            strokeLinejoin="round"
+                            strokeLinecap="round"
+                          />
+                          {detail.weeklyVolume.map((val, i) => {
+                            const max = Math.max(...detail.weeklyVolume);
+                            const min = Math.min(...detail.weeklyVolume);
+                            const range = max - min || 1;
+                            const stepX =
+                              200 / (detail.weeklyVolume.length - 1);
+                            const x = i * stepX;
+                            const y =
+                              60 - ((val - min) / range) * 60;
+                            return (
+                              <circle
+                                key={i}
+                                cx={x}
+                                cy={y}
+                                r={2}
+                                fill="#0a0a0a"
+                                stroke="#c45a2d"
+                                strokeWidth={1}
+                              />
+                            );
+                          })}
+                        </svg>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })()}
+          </AnimatePresence>
         </div>
       </div>
     </div>
