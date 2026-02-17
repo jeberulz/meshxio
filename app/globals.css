@@ -11,6 +11,7 @@
   --accent-green: #00ff41;
   --accent-orange: #c45a2d;
   --accent-red: #ff3344;
+  --accent-amber: #d4a017;
 }
 
 @theme inline {
@@ -24,6 +25,7 @@
   --color-accent-green: var(--accent-green);
   --color-accent-orange: var(--accent-orange);
   --color-accent-red: var(--accent-red);
+  --color-accent-amber: var(--accent-amber);
 
   --font-mono: var(--font-jb-mono);
   --font-display: var(--font-display);

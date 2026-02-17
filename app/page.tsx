@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -154,6 +155,17 @@ const AI_MODELS = [
   { name: "Demand Forecaster", type: "TIME-SERIES", compatibility: 87, lastTrained: "3 days ago", status: "retraining" as const },
 ];
 
+const NAV_ITEMS = [
+  { num: "01", label: "DASHBOARD", description: "Overview & metrics" },
+  { num: "02", label: "CATALOG", description: "Data product catalog" },
+  { num: "03", label: "SOURCES", description: "Domain data sources" },
+  { num: "04", label: "GOVERNANCE", description: "Access & compliance" },
+  { num: "05", label: "AI MODELS", description: "Model integrations" },
+  { num: "06", label: "SETTINGS", description: "Configuration" },
+  { num: "07", label: "PRESENTATION", description: "Design strategy deck", href: "/deck" },
+  { num: "08", label: "AI READINESS", description: "AI readiness scorecard", href: "/scorecard" },
+];
+
 const DOWNSTREAM_CONSUMERS = [
   { name: "EU Logistics Dashboard", type: "DASHBOARD", team: "Operations", lastAccessed: "4 min ago" },
   { name: "Delivery Time Predictor", type: "AI MODEL", team: "Data Science", lastAccessed: "2h ago" },
@@ -263,6 +275,7 @@ export default function Home() {
   );
   const [qualityExpanded, setQualityExpanded] = useState(false);
   const [domainsExpanded, setDomainsExpanded] = useState(false);
+  const [catalogOpen, setCatalogOpen] = useState(false);
   const detailPanelRef = useRef<HTMLDivElement>(null);
   const svgContainerRef = useRef<HTMLDivElement>(null);
   const feNodeRef = useRef<SVGGElement>(null);
@@ -305,13 +318,16 @@ export default function Home() {
   }, [selectedSource]);
 
   useEffect(() => {
-    if (!modelModalOpen) return;
+    if (!modelModalOpen && !catalogOpen) return;
     function handleEscape(e: KeyboardEvent) {
-      if (e.key === "Escape") setModelModalOpen(false);
+      if (e.key === "Escape") {
+        if (catalogOpen) setCatalogOpen(false);
+        else if (modelModalOpen) setModelModalOpen(false);
+      }
     }
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [modelModalOpen]);
+  }, [modelModalOpen, catalogOpen]);
 
   const isEdgeActive = useCallback(
     (edge: LineageEdge) =>
@@ -346,9 +362,19 @@ export default function Home() {
             </span>
           </div>
           <div className="flex-1 px-6 py-3 text-right">
-            <span className="font-mono text-[12px] tracking-[0.15em] text-secondary">
-              CATALOG +
-            </span>
+            <button
+              onClick={() => setCatalogOpen((p) => !p)}
+              className="font-mono text-[12px] tracking-[0.15em] text-secondary transition-colors duration-150 hover:text-foreground"
+            >
+              CATALOG{" "}
+              <motion.span
+                animate={{ rotate: catalogOpen ? 45 : 0 }}
+                transition={{ duration: 0.2 }}
+                className="inline-block"
+              >
+                +
+              </motion.span>
+            </button>
           </div>
         </div>
 
@@ -1133,6 +1159,93 @@ export default function Home() {
           </AnimatePresence>
         </div>
       </div>
+
+      {/* ================================================================ */}
+      {/* CATALOG NAV OVERLAY                                              */}
+      {/* ================================================================ */}
+      <AnimatePresence>
+        {catalogOpen && (
+          <motion.div
+            key="catalog-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-50 flex flex-col bg-background"
+          >
+            {/* Nav Header */}
+            <div className="flex items-center justify-between border-b border-border px-8 py-4">
+              <span className="font-mono text-[12px] tracking-[0.2em] text-foreground">
+                MESHX FOUNDATION
+              </span>
+              <button
+                onClick={() => setCatalogOpen(false)}
+                className="font-mono text-[12px] tracking-[0.15em] text-secondary transition-colors duration-150 hover:text-foreground"
+              >
+                CLOSE ×
+              </button>
+            </div>
+
+            {/* Nav Items */}
+            <div className="flex flex-1 flex-col justify-center px-12 md:px-24">
+              {NAV_ITEMS.map((item, i) => {
+                const inner = (
+                  <>
+                    <span className="font-mono text-[13px] tracking-[0.2em] text-secondary transition-colors duration-150 group-hover:text-accent-orange">
+                      {item.num}
+                    </span>
+                    <span className="font-mono text-[42px] font-black uppercase leading-none tracking-tight text-foreground transition-colors duration-150 group-hover:text-accent-orange md:text-[56px]">
+                      {item.label}
+                    </span>
+                    <span className="hidden font-mono text-[12px] tracking-[0.15em] text-secondary transition-colors duration-150 group-hover:text-accent-orange md:inline">
+                      {item.description}
+                    </span>
+                    <span className="ml-auto font-mono text-[14px] text-secondary opacity-0 transition-all duration-150 group-hover:text-accent-orange group-hover:opacity-100">
+                      {"->"}
+                    </span>
+                  </>
+                );
+
+                const className = "group flex items-baseline gap-6 border-b border-border py-6 text-left transition-colors duration-150 hover:border-accent-orange";
+
+                return item.href ? (
+                  <motion.div
+                    key={item.num}
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: i * 0.05 }}
+                  >
+                    <Link href={item.href} className={className}>
+                      {inner}
+                    </Link>
+                  </motion.div>
+                ) : (
+                  <motion.button
+                    key={item.num}
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: i * 0.05 }}
+                    onClick={() => setCatalogOpen(false)}
+                    className={className}
+                  >
+                    {inner}
+                  </motion.button>
+                );
+              })}
+            </div>
+
+            {/* Nav Footer */}
+            <div className="flex items-center justify-between border-t border-border px-8 py-4">
+              <span className="font-mono text-[11px] tracking-[0.2em] text-secondary">
+                V. 1.0
+              </span>
+              <span className="font-mono text-[11px] tracking-[0.15em] text-secondary">
+                ESC TO CLOSE
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ================================================================ */}
       {/* AI MODEL MODAL                                                   */}
