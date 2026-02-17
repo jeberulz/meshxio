@@ -419,8 +419,9 @@ function DomainCard({
         ? "rgba(255, 255, 255, 0.5)"
         : "rgba(255, 255, 255, 0.08)";
 
-  const topBorder =
-    domain.status === "BLOCKED" ? "2px solid rgba(255, 51, 68, 0.4)" : undefined;
+  const isBlocked = domain.status === "BLOCKED";
+  const topBorderWidth = isBlocked ? "2px" : "1px";
+  const topBorderColor = isBlocked ? "rgba(255, 51, 68, 0.4)" : borderColor;
 
   return (
     <motion.div
@@ -431,10 +432,15 @@ function DomainCard({
       onMouseLeave={() => setHovered(false)}
       className="flex flex-col p-6"
       style={{
-        borderLeft: `1px solid ${borderColor}`,
-        borderRight: `1px solid ${borderColor}`,
-        borderBottom: `1px solid ${borderColor}`,
-        borderTop: topBorder || `1px solid ${borderColor}`,
+        borderLeftWidth: "1px",
+        borderRightWidth: "1px",
+        borderBottomWidth: "1px",
+        borderTopWidth: topBorderWidth,
+        borderLeftColor: borderColor,
+        borderRightColor: borderColor,
+        borderBottomColor: borderColor,
+        borderTopColor: topBorderColor,
+        borderStyle: "solid",
         backgroundColor: "#0a0a0a",
         transition: "border-color 0.15s ease",
       }}
