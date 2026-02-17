@@ -99,6 +99,14 @@ const EDGES: LineageEdge[] = [
   { id: "e4", from: "foundation-engine", to: "supply-chain-dp", flowRate: "~7.3k events/sec" },
 ];
 
+const TRANSFORM_LOG = [
+  { step: "MERGE", detail: "Joined warehouse + shipment tables on order_id", timestamp: "3.8 min ago" },
+  { step: "DEDUPE", detail: "Removed 847 duplicate records (0.007%)", timestamp: "3.8 min ago" },
+  { step: "VALIDATE", detail: "Schema validation: 847/851 checks passed", timestamp: "3.7 min ago" },
+  { step: "ENRICH", detail: "Added carrier_rating from partner API", timestamp: "3.7 min ago" },
+  { step: "CONVERT", detail: "Timestamps normalized to UTC", timestamp: "3.6 min ago" },
+];
+
 const FEATURES: Feature[] = [
   {
     num: "01",
@@ -144,6 +152,13 @@ const AI_MODELS = [
   { name: "Delivery Time Predictor", type: "REGRESSION", compatibility: 98, lastTrained: "2h ago", status: "active" as const },
   { name: "Route Optimizer", type: "OPTIMIZATION", compatibility: 94, lastTrained: "18h ago", status: "active" as const },
   { name: "Demand Forecaster", type: "TIME-SERIES", compatibility: 87, lastTrained: "3 days ago", status: "retraining" as const },
+];
+
+const DOWNSTREAM_CONSUMERS = [
+  { name: "EU Logistics Dashboard", type: "DASHBOARD", team: "Operations", lastAccessed: "4 min ago" },
+  { name: "Delivery Time Predictor", type: "AI MODEL", team: "Data Science", lastAccessed: "2h ago" },
+  { name: "SLA Breach Alert", type: "AUTOMATION", team: "Operations", lastAccessed: "12 min ago" },
+  { name: "Weekly Ops Report", type: "REPORT", team: "Leadership", lastAccessed: "2 days ago" },
 ];
 
 const SOURCE_DETAILS: Record<
@@ -247,7 +262,31 @@ export default function Home() {
     null,
   );
   const [qualityExpanded, setQualityExpanded] = useState(false);
+  const [domainsExpanded, setDomainsExpanded] = useState(false);
   const detailPanelRef = useRef<HTMLDivElement>(null);
+  const svgContainerRef = useRef<HTMLDivElement>(null);
+  const feNodeRef = useRef<SVGGElement>(null);
+  const [feTooltipPos, setFeTooltipPos] = useState<{
+    left: number;
+    top: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (
+      hoveredNode !== "foundation-engine" ||
+      !feNodeRef.current ||
+      !svgContainerRef.current
+    ) {
+      setFeTooltipPos(null);
+      return;
+    }
+    const feRect = feNodeRef.current.getBoundingClientRect();
+    const containerRect = svgContainerRef.current.getBoundingClientRect();
+    setFeTooltipPos({
+      left: feRect.left - containerRect.left - 12,
+      top: feRect.top - containerRect.top,
+    });
+  }, [hoveredNode]);
 
   useEffect(() => {
     if (!selectedSource) return;
@@ -339,20 +378,100 @@ export default function Home() {
 
         {/* Stats Row */}
         <div className="flex border-b border-border">
-          {STATS.map((stat, i) => (
-            <div
-              key={stat.label}
-              className={`flex-1 px-8 py-5 ${i < STATS.length - 1 ? "border-r border-border" : ""}`}
-            >
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-secondary">
-                {stat.label}
+          {STATS.map((stat, i) => {
+            const isDomains = stat.label === "DOMAINS";
+            return (
+              <div
+                key={stat.label}
+                className={`flex-1 px-8 py-5 ${i < STATS.length - 1 ? "border-r border-border" : ""} ${isDomains ? "transition-colors duration-150 hover:bg-[rgba(255,255,255,0.02)]" : ""}`}
+                style={{
+                  cursor: isDomains ? "pointer" : undefined,
+                  borderBottom: isDomains && domainsExpanded ? "1px solid #c45a2d" : undefined,
+                }}
+                onClick={isDomains ? () => setDomainsExpanded((p) => !p) : undefined}
+              >
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-secondary">
+                  {stat.label}
+                </div>
+                <div className="mt-1 flex items-center gap-2 font-mono text-[14px] text-foreground">
+                  {stat.value}
+                  {isDomains && (
+                    <motion.span
+                      animate={{ rotate: domainsExpanded ? 90 : 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="text-[10px] text-accent-orange"
+                    >
+                      ▶
+                    </motion.span>
+                  )}
+                </div>
               </div>
-              <div className="mt-1 font-mono text-[14px] text-foreground">
-                {stat.value}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
+
+        {/* Downstream Consumers Panel */}
+        <AnimatePresence>
+          {domainsExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              style={{ overflow: "hidden" }}
+            >
+              <div
+                className="border-b border-border px-8 py-5"
+                style={{ backgroundColor: "rgba(196, 90, 45, 0.03)" }}
+              >
+                <div className="font-mono text-[10px] tracking-[0.2em] text-accent-orange">
+                  DOWNSTREAM CONSUMERS: {DOWNSTREAM_CONSUMERS.length}
+                </div>
+                <div className="mt-2 font-mono text-[11px] leading-[1.7] text-secondary">
+                  If this data product goes offline, these systems are affected.
+                </div>
+                <div className="mt-4">
+                  {DOWNSTREAM_CONSUMERS.map((consumer, i) => (
+                    <motion.div
+                      key={consumer.name}
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      className="py-3"
+                      style={{
+                        borderBottom:
+                          i < DOWNSTREAM_CONSUMERS.length - 1
+                            ? "1px solid rgba(255, 255, 255, 0.08)"
+                            : undefined,
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono text-[12px] font-bold tracking-wide text-foreground">
+                          {consumer.name}
+                        </span>
+                        <span
+                          className="font-mono text-[9px] tracking-[0.15em] px-2 py-[2px]"
+                          style={{
+                            border:
+                              consumer.type === "AI MODEL"
+                                ? "1px solid #c45a2d"
+                                : "1px solid rgba(255, 255, 255, 0.1)",
+                            color: consumer.type === "AI MODEL" ? "#c45a2d" : "#666",
+                          }}
+                        >
+                          {consumer.type}
+                        </span>
+                      </div>
+                      <div className="mt-1 font-mono text-[10px] text-secondary">
+                        {consumer.team} &middot; {consumer.lastAccessed}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Feature List */}
         <div className="flex-1 overflow-auto">
@@ -518,7 +637,7 @@ export default function Home() {
         </div>
 
         {/* SVG Graph */}
-        <div className="relative flex-1 overflow-hidden p-4">
+        <div ref={svgContainerRef} className="relative flex-1 overflow-hidden p-4">
           <svg
             viewBox="0 0 620 370"
             className="h-full w-full"
@@ -577,6 +696,7 @@ export default function Home() {
               return (
                 <g
                   key={node.id}
+                  ref={node.id === "foundation-engine" ? feNodeRef : undefined}
                   data-source-node={
                     node.type === "source" ? node.id : undefined
                   }
@@ -593,7 +713,10 @@ export default function Home() {
                       : undefined
                   }
                   style={{
-                    cursor: node.type === "source" ? "pointer" : "default",
+                    cursor:
+                      node.type === "source" || node.type === "transform"
+                        ? "pointer"
+                        : "default",
                   }}
                 >
                   {/* Node rect */}
@@ -673,6 +796,50 @@ export default function Home() {
             })}
           </svg>
 
+          {/* Transform tooltip */}
+          <AnimatePresence>
+            {hoveredNode === "foundation-engine" && feTooltipPos && (
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
+                className="pointer-events-none absolute z-20 w-[320px] border border-border-bright font-mono"
+                style={{
+                  left: feTooltipPos.left,
+                  top: feTooltipPos.top,
+                  transform: "translateX(-100%)",
+                  backgroundColor: "#0a0a0a",
+                  maxWidth: feTooltipPos.left,
+                }}
+              >
+                <div className="border-b border-border-bright px-3 py-2">
+                  <span className="text-[10px] tracking-[0.2em] text-secondary">
+                    LAST TRANSFORMATION RUN
+                  </span>
+                </div>
+                {TRANSFORM_LOG.map((entry, i) => (
+                  <div
+                    key={entry.step}
+                    className={`flex items-baseline justify-between gap-3 px-3 py-2${i < TRANSFORM_LOG.length - 1 ? " border-b border-border-bright" : ""}`}
+                  >
+                    <div className="flex min-w-0 flex-col gap-0.5">
+                      <span className="text-[10px] font-bold text-foreground">
+                        {entry.step}
+                      </span>
+                      <span className="text-[9px] leading-tight text-secondary">
+                        {entry.detail}
+                      </span>
+                    </div>
+                    <span className="shrink-0 text-[9px] text-[#333]">
+                      {entry.timestamp}
+                    </span>
+                  </div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Bottom-right metadata overlay */}
           <div className="absolute right-6 bottom-6 text-right font-mono text-[10px] leading-[1.8] text-secondary">
             <div>
@@ -709,7 +876,7 @@ export default function Home() {
                       duration: 0.25,
                       ease: "easeOut",
                     }}
-                    className="absolute inset-y-0 right-0 z-10 flex w-[336px] flex-col overflow-y-auto"
+                    className="absolute inset-y-0 right-0 z-10 flex w-[25vw] flex-col overflow-y-auto"
                     style={{
                       backgroundColor: "#0a0a0a",
                       borderLeft: "1px solid #c45a2d",
