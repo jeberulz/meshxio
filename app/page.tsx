@@ -335,18 +335,18 @@ export default function Home() {
         {/* Top Bar */}
         <div className="flex items-center border-b border-border">
           <div className="flex flex-1 items-center gap-3 border-r border-border px-6 py-3">
-            <span className="font-mono text-[11px] tracking-[0.2em] text-foreground">
+            <span className="font-mono text-[12px] tracking-[0.2em] text-foreground">
               MESHX FOUNDATION
             </span>
             <span className="inline-block h-[6px] w-[6px] animate-pulse-slow bg-accent-green" />
           </div>
           <div className="flex-1 border-r border-border px-6 py-3">
-            <span className="font-mono text-[11px] tracking-[0.15em] text-secondary">
+            <span className="font-mono text-[12px] tracking-[0.15em] text-secondary">
               V. 1.0
             </span>
           </div>
           <div className="flex-1 px-6 py-3 text-right">
-            <span className="font-mono text-[11px] tracking-[0.15em] text-secondary">
+            <span className="font-mono text-[12px] tracking-[0.15em] text-secondary">
               CATALOG +
             </span>
           </div>
@@ -365,7 +365,7 @@ export default function Home() {
 
         {/* Description */}
         <div className="border-b border-border px-8 py-6">
-          <div className="border-l border-border-bright pl-5 font-mono text-[12px] leading-[1.8] text-secondary">
+          <div className="border-l border-border-bright pl-5 font-mono text-[13px] leading-[1.8] text-secondary">
             Real-time shipment tracking data combined with
             <br />
             warehouse inventory levels and carrier performance
@@ -390,7 +390,7 @@ export default function Home() {
                 }}
                 onClick={isDomains ? () => setDomainsExpanded((p) => !p) : undefined}
               >
-                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-secondary">
+                <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-secondary">
                   {stat.label}
                 </div>
                 <div className="mt-1 flex items-center gap-2 font-mono text-[14px] text-foreground">
@@ -399,7 +399,7 @@ export default function Home() {
                     <motion.span
                       animate={{ rotate: domainsExpanded ? 90 : 0 }}
                       transition={{ duration: 0.2 }}
-                      className="text-[10px] text-accent-orange"
+                      className="text-[11px] text-accent-orange"
                     >
                       ▶
                     </motion.span>
@@ -424,10 +424,10 @@ export default function Home() {
                 className="border-b border-border px-8 py-5"
                 style={{ backgroundColor: "rgba(196, 90, 45, 0.03)" }}
               >
-                <div className="font-mono text-[10px] tracking-[0.2em] text-accent-orange">
+                <div className="font-mono text-[11px] tracking-[0.2em] text-accent-orange">
                   DOWNSTREAM CONSUMERS: {DOWNSTREAM_CONSUMERS.length}
                 </div>
-                <div className="mt-2 font-mono text-[11px] leading-[1.7] text-secondary">
+                <div className="mt-2 font-mono text-[12px] leading-[1.7] text-secondary">
                   If this data product goes offline, these systems are affected.
                 </div>
                 <div className="mt-4">
@@ -450,19 +450,19 @@ export default function Home() {
                           {consumer.name}
                         </span>
                         <span
-                          className="font-mono text-[9px] tracking-[0.15em] px-2 py-[2px]"
+                          className="font-mono text-[11px] tracking-[0.15em] px-2 py-[2px]"
                           style={{
                             border:
                               consumer.type === "AI MODEL"
                                 ? "1px solid #c45a2d"
                                 : "1px solid rgba(255, 255, 255, 0.1)",
-                            color: consumer.type === "AI MODEL" ? "#c45a2d" : "#666",
+                            color: consumer.type === "AI MODEL" ? "#c45a2d" : "#999",
                           }}
                         >
                           {consumer.type}
                         </span>
                       </div>
-                      <div className="mt-1 font-mono text-[10px] text-secondary">
+                      <div className="mt-1 font-mono text-[11px] text-secondary">
                         {consumer.team} &middot; {consumer.lastAccessed}
                       </div>
                     </motion.div>
@@ -481,14 +481,14 @@ export default function Home() {
             return (
               <div
                 key={feature.num}
-                className="border-b border-border transition-colors duration-150"
+                className={`border-b border-border transition-colors duration-150${isQuality ? " hover:bg-[rgba(255,255,255,0.02)]" : ""}`}
                 style={{
                   borderLeft: highlighted
                     ? "1px solid #c45a2d"
                     : "1px solid transparent",
                   backgroundColor: highlighted
                     ? "rgba(255, 255, 255, 0.02)"
-                    : "transparent",
+                    : undefined,
                   cursor: isQuality ? "pointer" : undefined,
                 }}
                 onMouseEnter={() => setHoveredNode(feature.nodeId)}
@@ -496,7 +496,7 @@ export default function Home() {
                 onClick={isQuality ? () => setQualityExpanded((p) => !p) : undefined}
               >
                 <div className="flex items-start gap-5 px-8 py-5">
-                  <span className="mt-[2px] font-mono text-[11px] text-secondary">
+                  <span className="mt-[2px] font-mono text-[12px] text-secondary">
                     {feature.num}
                   </span>
                   <div className="flex-1">
@@ -506,19 +506,19 @@ export default function Home() {
                       </span>
                       {feature.badge && (
                         <span
-                          className="font-mono text-[9px] tracking-[0.15em] px-2 py-[2px]"
+                          className="font-mono text-[11px] tracking-[0.15em] px-2 py-[2px]"
                           style={{
                             border: feature.badgeAccent
                               ? "1px solid #c45a2d"
                               : "1px solid rgba(255, 255, 255, 0.1)",
-                            color: feature.badgeAccent ? "#c45a2d" : "#666",
+                            color: feature.badgeAccent ? "#c45a2d" : "#999",
                           }}
                         >
                           {feature.badge}
                         </span>
                       )}
                     </div>
-                    <p className="mt-2 font-mono text-[11px] leading-[1.7] text-secondary">
+                    <p className="mt-2 font-mono text-[12px] leading-[1.7] text-secondary">
                       {feature.description}
                     </p>
                     {feature.progress != null && (
@@ -545,7 +545,7 @@ export default function Home() {
                               style={{ borderTop: "1px solid #d4a017" }}
                             >
                               <div
-                                className="font-mono text-[10px] tracking-[0.2em]"
+                                className="font-mono text-[11px] tracking-[0.2em]"
                                 style={{ color: "#d4a017" }}
                               >
                                 {QUALITY_ISSUES.length} ISSUES DETECTED
@@ -567,19 +567,16 @@ export default function Home() {
                                   >
                                     <div className="flex items-center gap-3">
                                       <span
-                                        className="font-mono text-[10px]"
-                                        style={{ color: "#444" }}
+                                        className="font-mono text-[11px]"
+                                        style={{ color: "#777" }}
                                       >
                                         {issue.id}
                                       </span>
-                                      <span className="font-mono text-[10px] text-foreground">
+                                      <span className="font-mono text-[11px] text-foreground">
                                         {issue.field}
                                       </span>
-                                      <span className="flex-1 font-mono text-[10px] text-secondary">
-                                        {issue.issue}
-                                      </span>
                                       <span
-                                        className="font-mono text-[8px] tracking-[0.15em] px-2 py-[1px]"
+                                        className="font-mono text-[11px] tracking-[0.15em] px-2 py-[1px]"
                                         style={{
                                           border:
                                             issue.severity === "warning"
@@ -588,13 +585,16 @@ export default function Home() {
                                           color:
                                             issue.severity === "warning"
                                               ? "#d4a017"
-                                              : "#666",
+                                              : "#999",
                                         }}
                                       >
                                         {issue.severity === "warning" ? "WARNING" : "INFO"}
                                       </span>
                                     </div>
-                                    <div className="mt-1 font-mono text-[9px] text-secondary">
+                                    <div className="mt-1 font-mono text-[11px] text-secondary">
+                                      {issue.issue}
+                                    </div>
+                                    <div className="mt-1 font-mono text-[11px] text-secondary">
                                       Detected {issue.detected} &middot; {issue.owner}
                                     </div>
                                   </motion.div>
@@ -629,7 +629,7 @@ export default function Home() {
         {/* Lineage Header */}
         <div className="border-b border-border px-6 py-3">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] tracking-[0.2em] text-foreground">
+            <span className="font-mono text-[11px] tracking-[0.2em] text-foreground">
               LINEAGE: LIVE
             </span>
             <span className="inline-block h-[6px] w-[6px] animate-pulse-slow bg-accent-green" />
@@ -673,7 +673,7 @@ export default function Home() {
                         y={mid.y - 6}
                         textAnchor="middle"
                         fill="#c45a2d"
-                        fontSize={9}
+                        fontSize={10}
                         letterSpacing="0.05em"
                       >
                         {edge.flowRate}
@@ -734,8 +734,8 @@ export default function Home() {
                   <text
                     x={node.x + 10}
                     y={node.y + 18}
-                    fill={hovered ? "#e5e5e5" : "#777"}
-                    fontSize={10}
+                    fill={hovered ? "#e5e5e5" : "#999"}
+                    fontSize={11}
                     fontWeight={700}
                     letterSpacing="0.08em"
                   >
@@ -746,8 +746,8 @@ export default function Home() {
                   <text
                     x={node.x + 10}
                     y={node.y + 34}
-                    fill={hovered ? "#c45a2d" : "#444"}
-                    fontSize={8}
+                    fill={hovered ? "#c45a2d" : "#777"}
+                    fontSize={9}
                     letterSpacing="0.1em"
                   >
                     {node.label}
@@ -759,7 +759,7 @@ export default function Home() {
                       <rect
                         x={node.x + 9}
                         y={node.y + 44}
-                        width={node.badge.length * 5.5 + 10}
+                        width={node.badge.length * 6 + 10}
                         height={14}
                         fill="none"
                         stroke={
@@ -772,8 +772,8 @@ export default function Home() {
                       <text
                         x={node.x + 14}
                         y={node.y + 54}
-                        fill={node.type === "output" ? "#c45a2d" : "#444"}
-                        fontSize={7}
+                        fill={node.type === "output" ? "#c45a2d" : "#777"}
+                        fontSize={9}
                         letterSpacing="0.08em"
                       >
                         {node.badge}
@@ -814,7 +814,7 @@ export default function Home() {
                 }}
               >
                 <div className="border-b border-border-bright px-3 py-2">
-                  <span className="text-[10px] tracking-[0.2em] text-secondary">
+                  <span className="text-[11px] tracking-[0.2em] text-secondary">
                     LAST TRANSFORMATION RUN
                   </span>
                 </div>
@@ -824,14 +824,14 @@ export default function Home() {
                     className={`flex items-baseline justify-between gap-3 px-3 py-2${i < TRANSFORM_LOG.length - 1 ? " border-b border-border-bright" : ""}`}
                   >
                     <div className="flex min-w-0 flex-col gap-0.5">
-                      <span className="text-[10px] font-bold text-foreground">
+                      <span className="text-[11px] font-bold text-foreground">
                         {entry.step}
                       </span>
-                      <span className="text-[9px] leading-tight text-secondary">
+                      <span className="text-[11px] leading-tight text-secondary">
                         {entry.detail}
                       </span>
                     </div>
-                    <span className="shrink-0 text-[9px] text-[#333]">
+                    <span className="shrink-0 text-[11px] text-[#777]">
                       {entry.timestamp}
                     </span>
                   </div>
@@ -841,7 +841,7 @@ export default function Home() {
           </AnimatePresence>
 
           {/* Bottom-right metadata overlay */}
-          <div className="absolute right-6 bottom-6 text-right font-mono text-[10px] leading-[1.8] text-secondary">
+          <div className="absolute right-6 bottom-6 text-right font-mono text-[11px] leading-[1.8] text-secondary">
             <div>
               SOURCES: <span className="text-foreground">3</span>
             </div>
@@ -890,7 +890,7 @@ export default function Home() {
                       }}
                     >
                       <span
-                        className="font-mono text-[10px] tracking-[0.2em]"
+                        className="font-mono text-[11px] tracking-[0.2em]"
                         style={{ color: "#e5e5e5" }}
                       >
                         SOURCE DETAIL
@@ -898,7 +898,7 @@ export default function Home() {
                       <button
                         onClick={() => setSelectedSource(null)}
                         className="font-mono text-[12px] transition-colors"
-                        style={{ color: "#555" }}
+                        style={{ color: "#888" }}
                         onMouseEnter={(e) =>
                           (e.currentTarget.style.color = "#e5e5e5")
                         }
@@ -918,8 +918,8 @@ export default function Home() {
                       }}
                     >
                       <div
-                        className="font-mono text-[9px] tracking-[0.2em]"
-                        style={{ color: "#555" }}
+                        className="font-mono text-[11px] tracking-[0.2em]"
+                        style={{ color: "#888" }}
                       >
                         SYSTEM
                       </div>
@@ -930,7 +930,7 @@ export default function Home() {
                         {sourceNode.systemName}
                       </div>
                       <div
-                        className="mt-1 font-mono text-[9px] tracking-[0.15em]"
+                        className="mt-1 font-mono text-[11px] tracking-[0.15em]"
                         style={{ color: "#c45a2d" }}
                       >
                         {sourceNode.label}
@@ -951,8 +951,8 @@ export default function Home() {
                         }}
                       >
                         <div
-                          className="font-mono text-[9px] tracking-[0.2em]"
-                          style={{ color: "#555" }}
+                          className="font-mono text-[11px] tracking-[0.2em]"
+                          style={{ color: "#888" }}
                         >
                           OWNER
                         </div>
@@ -965,8 +965,8 @@ export default function Home() {
                       </div>
                       <div className="flex-1 px-5 py-3">
                         <div
-                          className="font-mono text-[9px] tracking-[0.2em]"
-                          style={{ color: "#555" }}
+                          className="font-mono text-[11px] tracking-[0.2em]"
+                          style={{ color: "#888" }}
                         >
                           TEAM
                         </div>
@@ -993,8 +993,8 @@ export default function Home() {
                         }}
                       >
                         <div
-                          className="font-mono text-[9px] tracking-[0.2em]"
-                          style={{ color: "#555" }}
+                          className="font-mono text-[11px] tracking-[0.2em]"
+                          style={{ color: "#888" }}
                         >
                           LAST SYNC
                         </div>
@@ -1007,8 +1007,8 @@ export default function Home() {
                       </div>
                       <div className="flex-1 px-5 py-3">
                         <div
-                          className="font-mono text-[9px] tracking-[0.2em]"
-                          style={{ color: "#555" }}
+                          className="font-mono text-[11px] tracking-[0.2em]"
+                          style={{ color: "#888" }}
                         >
                           RECORDS
                         </div>
@@ -1035,14 +1035,14 @@ export default function Home() {
                         }}
                       >
                         <div
-                          className="font-mono text-[9px] tracking-[0.2em]"
-                          style={{ color: "#555" }}
+                          className="font-mono text-[11px] tracking-[0.2em]"
+                          style={{ color: "#888" }}
                         >
                           SLA STATUS
                         </div>
                         <div className="mt-2">
                           <span
-                            className="font-mono text-[9px] tracking-[0.15em]"
+                            className="font-mono text-[11px] tracking-[0.15em]"
                             style={{
                               border: `1px solid ${slaColor}`,
                               color: slaColor,
@@ -1057,8 +1057,8 @@ export default function Home() {
                       </div>
                       <div className="flex-1 px-5 py-3">
                         <div
-                          className="font-mono text-[9px] tracking-[0.2em]"
-                          style={{ color: "#555" }}
+                          className="font-mono text-[11px] tracking-[0.2em]"
+                          style={{ color: "#888" }}
                         >
                           UPTIME
                         </div>
@@ -1074,8 +1074,8 @@ export default function Home() {
                     {/* Sparkline */}
                     <div className="px-5 py-4">
                       <div
-                        className="font-mono text-[9px] tracking-[0.2em]"
-                        style={{ color: "#555" }}
+                        className="font-mono text-[11px] tracking-[0.2em]"
+                        style={{ color: "#888" }}
                       >
                         7-DAY VOLUME
                       </div>
@@ -1160,10 +1160,10 @@ export default function Home() {
             >
               {/* Modal Header */}
               <div className="border-b border-border px-6 py-5">
-                <div className="font-mono text-[11px] tracking-[0.2em] text-foreground">
+                <div className="font-mono text-[12px] tracking-[0.2em] text-foreground">
                   AVAILABLE MODELS
                 </div>
-                <div className="mt-1 font-mono text-[11px] text-secondary">
+                <div className="mt-1 font-mono text-[12px] text-secondary">
                   Compatible AI models for this data product
                 </div>
               </div>
@@ -1181,10 +1181,10 @@ export default function Home() {
                         {model.name}
                       </span>
                       <span
-                        className="font-mono text-[9px] tracking-[0.15em] px-2 py-[2px]"
+                        className="font-mono text-[11px] tracking-[0.15em] px-2 py-[2px]"
                         style={{
                           border: "1px solid rgba(255, 255, 255, 0.15)",
-                          color: "#666",
+                          color: "#999",
                         }}
                       >
                         {model.type}
@@ -1193,7 +1193,7 @@ export default function Home() {
 
                     {/* Compatibility Bar */}
                     <div className="mt-3 flex items-center gap-3">
-                      <span className="font-mono text-[9px] tracking-[0.15em] text-secondary">
+                      <span className="font-mono text-[11px] tracking-[0.15em] text-secondary">
                         COMPATIBILITY: {model.compatibility}%
                       </span>
                       <div className="h-[2px] flex-1 bg-border-bright">
@@ -1206,11 +1206,11 @@ export default function Home() {
 
                     {/* Last Trained + Status Badge */}
                     <div className="mt-3 flex items-center justify-between">
-                      <span className="font-mono text-[10px] text-secondary">
+                      <span className="font-mono text-[11px] text-secondary">
                         Last trained: {model.lastTrained}
                       </span>
                       <span
-                        className="font-mono text-[9px] tracking-[0.15em] px-2 py-[2px]"
+                        className="font-mono text-[11px] tracking-[0.15em] px-2 py-[2px]"
                         style={{
                           border: `1px solid ${model.status === "active" ? "#00ff41" : "#f59e0b"}`,
                           color: model.status === "active" ? "#00ff41" : "#f59e0b",
@@ -1225,7 +1225,7 @@ export default function Home() {
 
               {/* Locked Deploy Bar */}
               <div className="border-t border-border px-6 py-4">
-                <span className="font-mono text-[11px] tracking-[0.15em] text-secondary">
+                <span className="font-mono text-[12px] tracking-[0.15em] text-secondary">
                   [LOCKED] DEPLOY REQUIRES APPROVAL
                 </span>
               </div>
