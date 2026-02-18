@@ -1382,107 +1382,8 @@ function Slide11() {
 // SLIDE 12 — LIVE DEMO WALKTHROUGH
 // ---------------------------------------------------------------------------
 
-function Slide12() {
-  const script = [
-    {
-      time: "0:00",
-      action: "Open prototype. Point to two-panel layout.",
-      say: "Left is the data product. Right is live lineage.",
-    },
-    {
-      time: "0:15",
-      action: "Hover feature 01 on left.",
-      say: "Watch how SAP_ERP highlights on the right. That's cross-panel linking.",
-    },
-    {
-      time: "0:25",
-      action: "Hover an edge on the lineage graph.",
-      say: "Flow rates appear. 3.8k events per second through Kafka.",
-    },
-    {
-      time: "0:35",
-      action: "Click SAP_ERP source node.",
-      say: "Detail panel. Owner, SLA, sparkline. Click REST_API — SLA turns red.",
-    },
-    {
-      time: "0:55",
-      action: "Click Data Quality Score.",
-      say: "4 issues expand. carrier_id has 12 nulls. Sarah Kim owns it.",
-    },
-    {
-      time: "1:15",
-      action: 'Click "3 connected" domains.',
-      say: "4 downstream consumers. Includes an AI model and leadership report.",
-    },
-    {
-      time: "1:30",
-      action: "Hover Foundation Engine.",
-      say: "Transformation log. 5 steps. Full audit trail on hover.",
-    },
-    {
-      time: "1:45",
-      action: "Click Connect to AI Model.",
-      say: "3 models, compatibility scores. Deploy locked — governance built in.",
-    },
-  ];
-
-  return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-background bg-grid">
-      <TopBar left="11  LIVE DEMO WALKTHROUGH" />
-
-      <div className="flex flex-1 flex-col px-16 py-12">
-        <h2 className="font-display text-[48px] font-black uppercase leading-[1.1] text-foreground">
-          2-minute demo script
-        </h2>
-
-        {/* Column headers */}
-        <div className="mt-10 flex items-center gap-6 px-6 pb-3" style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>
-          <span className="font-mono text-[14px] tracking-[0.2em] text-secondary uppercase w-[60px] shrink-0">
-            TIME
-          </span>
-          <span className="font-mono text-[14px] tracking-[0.2em] text-secondary uppercase flex-1">
-            ACTION
-          </span>
-          <span className="font-mono text-[14px] tracking-[0.2em] text-secondary uppercase flex-1">
-            SAY
-          </span>
-        </div>
-
-        {/* Script rows */}
-        <div className="flex flex-col overflow-auto">
-          {script.map((row, i) => (
-            <div
-              key={row.time}
-              className="flex items-start gap-6 px-6 py-4"
-              style={{
-                backgroundColor: i % 2 === 0 ? "#0a0a0a" : "transparent",
-                borderBottom: "1px solid rgba(255, 255, 255, 0.03)",
-              }}
-            >
-              <span className="font-mono text-[16px] font-bold text-accent-orange w-[60px] shrink-0">
-                {row.time}
-              </span>
-              <span className="font-mono text-[16px] text-foreground flex-1 leading-[1.6]">
-                {row.action}
-              </span>
-              <span className="font-mono text-[16px] text-secondary flex-1 leading-[1.6] italic">
-                {row.say}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Note */}
-        <div className="mt-6 font-mono text-[16px] text-accent-orange">
-          → After this slide, switch to the live prototype at /
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ---------------------------------------------------------------------------
-// SLIDE 13 — FIRST 90 DAYS
+// SLIDE 12 — FIRST 90 DAYS
 // ---------------------------------------------------------------------------
 
 function Slide13() {
@@ -1509,7 +1410,7 @@ function Slide13() {
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-background bg-grid">
-      <TopBar left="12  FIRST 90 DAYS" />
+      <TopBar left="11  FIRST 90 DAYS" />
 
       <div className="flex flex-1 flex-col px-16 py-12">
         <h2 className="font-display text-[48px] font-black uppercase leading-[1.1] text-foreground">
@@ -1550,7 +1451,7 @@ function Slide13() {
 }
 
 // ---------------------------------------------------------------------------
-// SLIDE 14 — CLOSE
+// SLIDE 13 — CLOSE
 // ---------------------------------------------------------------------------
 
 function Slide14() {
@@ -1621,7 +1522,6 @@ const SLIDES = [
   Slide09,
   Slide10,
   Slide11,
-  Slide12,
   Slide13,
   Slide14,
 ];
